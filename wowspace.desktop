@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=WowSpace
+GenericName=Sound Enhancer
+Comment=3D sound, TruBass-style bass and headphone crossfeed for PipeWire
+Exec=wowspace
+Icon=wowspace
+Categories=AudioVideo;Audio;Mixer;
+Keywords=sound;audio;bass;3d;surround;equalizer;pipewire;wow;
+StartupNotify=false

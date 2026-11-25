@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>WowSpace HeSuVi Builder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a two-bay "rack" — controls on the left, analyser + preview + export on the right; stacks on phones. */
+:root{
+  --bg:#e9e7e2; --panel:#f6f5f1; --ink:#1d1f22; --muted:#5d6168; --line:#cfccc4;
+  --accent:#b35a00; --accent-ink:#ffffff; --mid:#b35a00; --side:#1f6f8b; --screen:#fbfaf7; --grid:#e3e0d8;
+  --display:"Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#16181b; --panel:#1f2226; --ink:#e8e6e1; --muted:#9aa0a8; --line:#33373d;
+  --accent:#ffa733; --accent-ink:#1a1206; --mid:#ffa733; --side:#5fc6e8; --screen:#121417; --grid:#262a30; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#16181b; --panel:#1f2226; --ink:#e8e6e1; --muted:#9aa0a8; --line:#33373d;
+  --accent:#ffa733; --accent-ink:#1a1206; --mid:#ffa733; --side:#5fc6e8; --screen:#121417; --grid:#262a30; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4vw,38px);letter-spacing:.02em;margin:0;line-height:1.1;text-wrap:balance}
+h1 span{color:var(--accent)}
+.lede{margin:6px 0 0;color:var(--muted);max-width:62ch}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:20px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.bay{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px;display:grid;gap:16px;min-width:0}
+h2{font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button,.btn{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:7px 12px;border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600;padding:10px 16px}
+button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.ctl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center}
+.ctl label{font-weight:500}
+.ctl .val{font-family:var(--mono);font-size:13px;color:var(--accent);font-variant-numeric:tabular-nums;min-width:6ch;text-align:right}
+.ctl input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--accent)}
+.ctl small{grid-column:1/-1;color:var(--muted);font-size:12.5px;line-height:1.4}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+select,input[type=text]{font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:6px 8px}
+input[type=text]{min-width:0;flex:1}
+.check{display:flex;gap:8px;align-items:center}
+.group{display:grid;gap:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.group:first-of-type{border-top:0;padding-top:0}
+.screen{background:var(--screen);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+canvas{display:block;width:100%;height:260px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px;border-radius:2px}
+.status{font-family:var(--mono);font-size:12.5px;color:var(--muted);min-height:1.4em}
+.note{color:var(--muted);font-size:13.5px;max-width:65ch;margin:0}
+.note b{color:var(--ink)}
+code{font-family:var(--mono);font-size:12.5px;background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-radius:3px;word-break:break-all}
+ol{margin:0;padding-left:20px;display:grid;gap:6px;color:var(--muted);font-size:14px}
+ol b{color:var(--ink)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Wow<span>Space</span> HeSuVi Builder</h1>
+      <p class="lede">Dial in the sound of the old SRS WOW Thing Winamp plug-in (3D space, center level, TruBass, focus, headphone mode), hear it, then export it as a ready-to-install PipeWire output for Arch Linux, with a HeSuVi-format impulse file included.</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="bay" aria-labelledby="h-ctl">
+      <h2 id="h-ctl">Controls</h2>
+      <div class="presets" id="presets"></div>
+
+      <div class="group">
+        <div class="ctl"><label for="space">3D Space</label><span class="val" id="space-v"></span>
+          <input type="range" id="space" min="0" max="100" step="1">
+          <small>Widens the stereo image by equalising the L−R difference signal with the SRS-style perspective curve.</small></div>
+        <div class="ctl"><label for="center">3D Center</label><span class="val" id="center-v"></span>
+          <input type="range" id="center" min="0" max="100" step="1">
+          <small>Level of the L+R sum (vocals, kick, bass). 50 is neutral.</small></div>
+      </div>
+
+      <div class="group">
+        <div class="ctl"><label for="trubass">TruBass</label><span class="val" id="trubass-v"></span>
+          <input type="range" id="trubass" min="0" max="100" step="1"></div>
+        <div class="row"><label for="speaker">Speaker size</label>
+          <select id="speaker">
+            <option value="40">40 Hz · Large</option><option value="60">60 Hz</option><option value="80">80 Hz</option>
+            <option value="100">100 Hz · Medium</option><option value="150">150 Hz</option><option value="200">200 Hz · Small</option>
+            <option value="300">300 Hz</option><option value="400">400 Hz · Tiny</option>
+          </select></div>
+      </div>
+
+      <div class="group">
+        <div class="ctl"><label for="focus">Focus</label><span class="val" id="focus-v"></span>
+          <input type="range" id="focus" min="0" max="100" step="1">
+          <small>Presence lift around 3 kHz plus air above 9 kHz, which raises the image the way WOW's FOCUS did.</small></div>
+        <div class="row"><label class="check"><input type="checkbox" id="headphones"> Headphone mode</label></div>
+        <div class="ctl"><label for="crossfeed">Headphone crossfeed</label><span class="val" id="crossfeed-v"></span>
+          <input type="range" id="crossfeed" min="0" max="100" step="1"></div>
+      </div>
+
+      <div class="group">
+        <div class="ctl"><label for="gain">Output trim</label><span class="val" id="gain-v"></span>
+          <input type="range" id="gain" min="-12" max="6" step="0.5"></div>
+        <label class="check"><input type="checkbox" id="auto"> Auto headroom (keeps the loudest band at −0.5 dB)</label>
+      </div>
+    </section>
+
+    <div style="display:grid;gap:20px;min-width:0">
+      <section class="bay" aria-labelledby="h-resp">
+        <h2 id="h-resp">Frequency response</h2>
+        <div class="screen"><canvas id="chart" aria-label="Frequency response of the center and space paths"></canvas></div>
+        <div class="legend"><span><i style="background:var(--mid)"></i>Center path (L+R)</span><span><i style="background:var(--side)"></i>Space path (L−R)</span><span id="peak" style="font-family:var(--mono)"></span></div>
+      </section>
+
+      <section class="bay" aria-labelledby="h-prev">
+        <h2 id="h-prev">Preview</h2>
+        <div class="row">
+          <button id="play">Play demo loop</button>
+          <button id="bypass" aria-pressed="false">Bypass</button>
+          <label class="btn" for="file" style="display:inline-block">Load your own track…</label>
+          <input type="file" id="file" accept="audio/*" hidden>
+        </div>
+        <div class="status" id="pstatus">Preview runs the same impulse that gets exported. Use headphones.</div>
+      </section>
+
+      <section class="bay" aria-labelledby="h-exp">
+        <h2 id="h-exp">Export for Arch Linux</h2>
+        <div class="row"><label for="name">Name</label><input type="text" id="name" value="WowSpace Classic" maxlength="40"></div>
+        <div class="row"><button class="primary" id="export">Download zip</button></div>
+        <div class="status" id="estatus"></div>
+        <p class="note">The zip has two ways to install. Pick <b>one</b>: running both processes the sound twice.</p>
+        <h2>Option A · EasyEffects preset</h2>
+        <ol>
+          <li>Run <code>bash install-easyeffects.sh</code> from the unzipped folder. It puts the impulse in <code>~/.local/share/easyeffects/irs/</code> and the preset in <code>~/.local/share/easyeffects/output/</code> (and the Flatpak folders if you use the Flatpak).</li>
+          <li>In EasyEffects open <b>Presets → Output</b> and load your preset. The chain is Bass Enhancer → Convolver → Limiter.</li>
+          <li>The Bass Enhancer generates real bass harmonics, which is the part of TruBass an impulse file can't hold. Its amount and frequency follow your TruBass and Speaker size settings.</li>
+        </ol>
+        <h2>Option B · PipeWire output, no extra app</h2>
+        <ol>
+          <li>Run <code>bash install.sh</code>. It copies the impulse files to <code>~/.config/pipewire/wowspace/</code>, writes a filter-chain config to <code>~/.config/pipewire/pipewire.conf.d/</code> and restarts PipeWire. No root needed.</li>
+          <li>Pick the new <b>WowSpace</b> output (named after your preset) in your sound settings or <code>pavucontrol</code>, or run <code>wpctl status</code> then <code>wpctl set-default &lt;id&gt;</code>.</li>
+          <li>To remove it, delete its <code>sink-wowspace*.conf</code> and restart PipeWire.</li>
+        </ol>
+        <p class="note"><b>Also in the zip.</b> The 14-channel HeSuVi-format file, which works with PipeWire's <code>sink-virtual-surround-7.1-hesuvi.conf</code> example and with HeSuVi on Windows.</p>
+        <p class="note"><b>What carries over.</b> The impulse reproduces every linear part of WOW: the 3D difference-signal curve, center level, focus and the TruBass resonance. Real TruBass also generated bass harmonics. Option A adds those with EasyEffects' Bass Enhancer; Option B, HeSuVi and this preview can't, so raise TruBass a little there to make up for it.</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- DSP ----------
+const dB = x => Math.pow(10, x / 20);
+function biquad(type, f, fs, Q, g) {
+  const A = Math.pow(10, g / 40), w = 2 * Math.PI * Math.min(f, fs * 0.45) / fs, c = Math.cos(w), s = Math.sin(w), al = s / (2 * Q);
+  let b0, b1, b2, a0, a1, a2;
+  if (type === "peak") { b0 = 1 + al * A; b1 = -2 * c; b2 = 1 - al * A; a0 = 1 + al / A; a1 = -2 * c; a2 = 1 - al / A; }
+  else if (type === "lowshelf") { const r = 2 * Math.sqrt(A) * al;
+    b0 = A * ((A + 1) - (A - 1) * c + r); b1 = 2 * A * ((A - 1) - (A + 1) * c); b2 = A * ((A + 1) - (A - 1) * c - r);
+    a0 = (A + 1) + (A - 1) * c + r; a1 = -2 * ((A - 1) + (A + 1) * c); a2 = (A + 1) + (A - 1) * c - r; }
+  else if (type === "highshelf") { const r = 2 * Math.sqrt(A) * al;
+    b0 = A * ((A + 1) + (A - 1) * c + r); b1 = -2 * A * ((A - 1) + (A + 1) * c); b2 = A * ((A + 1) + (A - 1) * c - r);
+    a0 = (A + 1) - (A - 1) * c + r; a1 = 2 * ((A - 1) - (A + 1) * c); a2 = (A + 1) - (A - 1) * c - r; }
+  else if (type === "hp") { b0 = (1 + c) / 2; b1 = -(1 + c); b2 = (1 + c) / 2; a0 = 1 + al; a1 = -2 * c; a2 = 1 - al; }
+  else { b0 = (1 - c) / 2; b1 = 1 - c; b2 = (1 - c) / 2; a0 = 1 + al; a1 = -2 * c; a2 = 1 - al; } // lp
+  return [b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0];
+}
+function filt(x, k) {
+  const [b0, b1, b2, a1, a2] = k; let x1 = 0, x2 = 0, y1 = 0, y2 = 0; const y = new Float64Array(x.length);
+  for (let n = 0; n < x.length; n++) { const v = x[n], o = b0 * v + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2; x2 = x1; x1 = v; y2 = y1; y1 = o; y[n] = o; }
+  return y;
+}
+function fftMag(x) { // radix-2, returns |X[k]| for k<=N/2
+  const N = x.length, re = Float64Array.from(x), im = new Float64Array(N);
+  for (let i = 1, j = 0; i < N; i++) { let b = N >> 1; for (; j & b; b >>= 1) j ^= b; j ^= b; if (i < j) { [re[i], re[j]] = [re[j], re[i]]; } }
+  for (let len = 2; len <= N; len <<= 1) { const ang = -2 * Math.PI / len, wr = Math.cos(ang), wi = Math.sin(ang);
+    for (let i = 0; i < N; i += len) { let cr = 1, ci = 0;
+      for (let j = 0; j < len / 2; j++) { const a = i + j, b = a + len / 2, tr = re[b] * cr - im[b] * ci, ti = re[b] * ci + im[b] * cr;
+        re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti; const t = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = t; } } }
+  const m = new Float64Array(N / 2 + 1); for (let k = 0; k <= N / 2; k++) m[k] = Math.hypot(re[k], im[k]); return m;
+}
+
+// Returns {LL, LR, gainDb, magM, magS} for one sample rate.
+function buildIR(p, fs) {
+  const N = 8192, imp = new Float64Array(N); imp[0] = 1;
+  const d = p.space / 100, fo = p.focus / 100, tb = p.trubass / 100;
+  // Center (sum) path
+  let m = imp.map(v => v * dB((p.center - 50) / 50 * 6));
+  if (tb > 0) { m = filt(m, biquad("peak", p.speaker, fs, 1.1, tb * 14)); m = filt(m, biquad("hp", p.speaker * 0.3, fs, 0.707, 0)); }
+  // Space (difference) path: SRS-style perspective curve
+  let s = imp.map(v => v * dB(d * 8));
+  if (d > 0) {
+    s = filt(s, biquad("hp", 20 + 70 * d, fs, 0.707, 0));
+    s = filt(s, biquad("peak", 350, fs, 0.7, 6 * d));
+    s = filt(s, biquad("peak", 3000, fs, 1.0, -5 * d));
+    s = filt(s, biquad("highshelf", 7000, fs, 0.7, 5 * d));
+  }
+  // Focus on both paths
+  if (fo > 0) for (const k of [biquad("peak", 3200, fs, 0.9, 6 * fo), biquad("highshelf", 9000, fs, 0.7, 2.5 * fo)]) { m = filt(m, k); s = filt(s, k); }
+  let LL = new Float64Array(N), LR = new Float64Array(N);
+  for (let n = 0; n < N; n++) { LL[n] = (m[n] + s[n]) / 2; LR[n] = (m[n] - s[n]) / 2; }
+  // Headphone crossfeed: low-passed, delayed copy of the direct path into the opposite ear
+  if (p.headphones && p.crossfeed > 0) {
+    const g = 0.45 * p.crossfeed / 100, dl = Math.round(0.00028 * fs);
+    const x = filt(filt(LL, biquad("lp", 750, fs, 0.6, 0)), biquad("lp", 1400, fs, 0.6, 0));
+    for (let n = N - 1; n >= dl; n--) LR[n] += g * x[n - dl];
+    for (let n = 0; n < N; n++) LL[n] *= 1 - g * 0.35;
+  }
+  // Fade the tail
+  const F = N >> 2; for (let i = 0; i < F; i++) { const w = 0.5 + 0.5 * Math.cos(Math.PI * i / F); LL[N - F + i] *= w; LR[N - F + i] *= w; }
+  const sum = LL.map((v, i) => v + LR[i]), dif = LL.map((v, i) => v - LR[i]);
+  const magM = fftMag(sum), magS = fftMag(dif);
+  let pk = 0; for (let k = 1; k < magM.length; k++) pk = Math.max(pk, magM[k], magS[k]);
+  const gainDb = (p.auto ? -0.5 - 20 * Math.log10(pk) : 0) + p.gain, g = dB(gainDb);
+  for (let n = 0; n < N; n++) { LL[n] *= g; LR[n] *= g; }
+  return { LL, LR, gainDb, magM, magS, peakDb: 20 * Math.log10(pk) + gainDb };
+}
+
+// HeSuVi 14-channel order
+const ORDER = ["FL-L","FL-R","SL-L","SL-R","BL-L","BL-R","FC-L","FR-R","FR-L","SR-R","SR-L","BR-R","BR-L","FC-R"];
+function hesuviChannels(LL, LR) {
+  const sur = 0.708, cen = LL.map((v, i) => (v + LR[i]) * 0.708);
+  const map = { "FL-L": [LL,1], "FL-R": [LR,1], "FR-R": [LL,1], "FR-L": [LR,1], "SL-L": [LL,sur], "SL-R": [LR,sur], "SR-R": [LL,sur], "SR-L": [LR,sur],
+    "BL-L": [LL,sur], "BL-R": [LR,sur], "BR-R": [LL,sur], "BR-L": [LR,sur], "FC-L": [cen,1], "FC-R": [cen,1] };
+  return ORDER.map(k => { const [a, g] = map[k]; return a.map(v => v * g); });
+}
+function wavFloat(chs, fs) { // IEEE float 32, format 3, with fact chunk
+  const C = chs.length, N = chs[0].length, data = N * C * 4, buf = new ArrayBuffer(12 + 26 + 12 + 8 + data), v = new DataView(buf); let o = 0;
+  const str = s => { for (const ch of s) v.setUint8(o++, ch.charCodeAt(0)); }, u32 = x => { v.setUint32(o, x, true); o += 4; }, u16 = x => { v.setUint16(o, x, true); o += 2; };
+  str("RIFF"); u32(buf.byteLength - 8); str("WAVE");
+  str("fmt "); u32(18); u16(3); u16(C); u32(fs); u32(fs * C * 4); u16(C * 4); u16(32); u16(0);
+  str("fact"); u32(4); u32(N);
+  str("data"); u32(data);
+  for (let n = 0; n < N; n++) for (let c = 0; c < C; c++) { v.setFloat32(o, chs[c][n], true); o += 4; }
+  return new Uint8Array(buf);
+}
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zip(files) { // [{name, data:Uint8Array}] stored, no compression
+  const enc = new TextEncoder(), parts = [], cen = []; let off = 0;
+  const d = new Date(), time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1), date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  for (const f of files) {
+    const nm = enc.encode(f.name), crc = crc32(f.data), h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, 0, true); h.setUint16(10, time, true); h.setUint16(12, date, true);
+    h.setUint32(14, crc, true); h.setUint32(18, f.data.length, true); h.setUint32(22, f.data.length, true); h.setUint16(26, nm.length, true); h.setUint16(28, 0, true);
+    parts.push(new Uint8Array(h.buffer), nm, f.data);
+    const c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(10, 0, true); c.setUint16(12, time, true); c.setUint16(14, date, true);
+    c.setUint32(16, crc, true); c.setUint32(20, f.data.length, true); c.setUint32(24, f.data.length, true); c.setUint16(28, nm.length, true); c.setUint32(42, off, true);
+    cen.push(new Uint8Array(c.buffer), nm); off += 30 + nm.length + f.data.length;
+  }
+  const csize = cen.reduce((a, b) => a + b.length, 0), e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true); e.setUint32(12, csize, true); e.setUint32(16, off, true);
+  return new Blob([...parts, ...cen, new Uint8Array(e.buffer)]);
+}
+
+// ---------- UI ----------
+const PRESETS = {
+  "WowSpace Classic": { space: 60, center: 50, trubass: 50, speaker: 100, focus: 30, headphones: false, crossfeed: 0 },
+  "Headphones":       { space: 55, center: 55, trubass: 45, speaker: 80, focus: 25, headphones: true, crossfeed: 40 },
+  "Max WOW":          { space: 100, center: 45, trubass: 80, speaker: 100, focus: 50, headphones: false, crossfeed: 0 },
+  "Bass Head":        { space: 40, center: 55, trubass: 90, speaker: 60, focus: 15, headphones: true, crossfeed: 25 },
+  "Subtle":           { space: 30, center: 50, trubass: 25, speaker: 150, focus: 15, headphones: false, crossfeed: 0 },
+};
+const $ = id => document.getElementById(id);
+const P = { ...PRESETS["WowSpace Classic"], gain: 0, auto: true };
+const fmt = { space: v => v + "%", center: v => v + "%", trubass: v => v + "%", focus: v => v + "%", crossfeed: v => v + "%", gain: v => (v > 0 ? "+" : "") + Number(v).toFixed(1) + " dB" };
+
+function sync() {
+  for (const k of Object.keys(fmt)) { $(k).value = P[k]; $(k + "-v").textContent = fmt[k](P[k]); }
+  $("speaker").value = String(P.speaker); $("headphones").checked = P.headphones; $("auto").checked = P.auto;
+  $("crossfeed").disabled = !P.headphones;
+}
+const pBox = $("presets");
+for (const name of Object.keys(PRESETS)) { const b = document.createElement("button"); b.textContent = name; b.type = "button";
+  b.onclick = () => { Object.assign(P, PRESETS[name]); $("name").value = name === "WowSpace Classic" ? name : "WowSpace " + name; sync(); update(); }; pBox.appendChild(b); }
+for (const k of Object.keys(fmt)) $(k).addEventListener("input", e => { P[k] = Number(e.target.value); $(k + "-v").textContent = fmt[k](P[k]); update(); });
+$("speaker").onchange = e => { P.speaker = Number(e.target.value); update(); };
+$("headphones").onchange = e => { P.headphones = e.target.checked; $("crossfeed").disabled = !P.headphones; update(); };
+$("auto").onchange = e => { P.auto = e.target.checked; update(); };
+
+let cur = null, tmr = 0;
+function update() { clearTimeout(tmr); tmr = setTimeout(() => { cur = buildIR(P, 48000); draw(); refreshConvolver(); }, 60); }
+
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function draw() {
+  const cv = $("chart"), dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr; const g = cv.getContext("2d"); g.scale(dpr, dpr); g.clearRect(0, 0, W, H);
+  const L = 38, R = 10, T = 10, B = 24, f0 = 20, f1 = 20000, y0 = -18, y1 = 18;
+  const fx = f => L + (W - L - R) * Math.log(f / f0) / Math.log(f1 / f0), dy = v => T + (H - T - B) * (y1 - v) / (y1 - y0);
+  g.font = "11px " + css("--mono"); g.fillStyle = css("--muted"); g.strokeStyle = css("--grid"); g.lineWidth = 1;
+  for (const f of [50, 100, 200, 500, 1000, 2000, 5000, 10000]) { const x = fx(f); g.beginPath(); g.moveTo(x, T); g.lineTo(x, H - B); g.stroke();
+    g.textAlign = "center"; g.fillText(f >= 1000 ? f / 1000 + "k" : f, x, H - 7); }
+  for (let v = y0; v <= y1; v += 6) { const y = dy(v); g.beginPath(); g.moveTo(L, y); g.lineTo(W - R, y); g.stroke(); g.textAlign = "right"; g.fillText((v > 0 ? "+" : "") + v, L - 6, y + 4); }
+  g.strokeStyle = css("--muted"); g.beginPath(); g.moveTo(L, dy(0)); g.lineTo(W - R, dy(0)); g.stroke();
+  const N = (cur.magM.length - 1) * 2, gl = dB(cur.gainDb);
+  for (const [mag, col] of [[cur.magS, css("--side")], [cur.magM, css("--mid")]]) {
+    g.strokeStyle = col; g.lineWidth = 2.2; g.beginPath();
+    for (let px = L; px <= W - R; px++) { const f = f0 * Math.pow(f1 / f0, (px - L) / (W - L - R)), k = f * N / 48000, i = Math.floor(k), t = k - i;
+      const m = (mag[i] * (1 - t) + mag[Math.min(i + 1, mag.length - 1)] * t) * gl, v = Math.max(y0, Math.min(y1, 20 * Math.log10(m + 1e-9)));
+      px === L ? g.moveTo(px, dy(v)) : g.lineTo(px, dy(v)); }
+    g.stroke(); }
+  $("peak").textContent = "peak " + cur.peakDb.toFixed(1) + " dB · trim " + cur.gainDb.toFixed(1) + " dB";
+}
+window.addEventListener("resize", () => cur && draw());
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => cur && draw());
+new MutationObserver(() => cur && draw()).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+// ---------- Preview ----------
+let ctx = null, conv, wet, dry, src = null, srcBuf = null, demoBuf = null, playing = false, bypass = false;
+function makeDemo(sr) {
+  const len = sr * 8, b = ctx.createBuffer(2, len, sr), L = b.getChannelData(0), Rr = b.getChannelData(1), beat = sr / 2;
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 * 2 - 1;
+  for (let n = 0; n < len; n++) {
+    const t = n / sr, bt = n % beat, tb = bt / sr, step = Math.floor(n / (beat / 2)) % 2;
+    let mono = Math.sin(2 * Math.PI * (45 + 90 * Math.exp(-tb * 30)) * tb) * Math.exp(-tb * 7) * 0.7; // kick
+    const bassNotes = [55, 55, 65.4, 49], bf = bassNotes[Math.floor(t / 2) % 4];
+    mono += Math.sin(2 * Math.PI * bf * t) * 0.22 * (0.6 + 0.4 * Math.sin(2 * Math.PI * 2 * t));
+    const hb = n % (beat / 2), hat = rnd() * Math.exp(-hb / sr * 60) * 0.18;
+    const padL = (Math.sin(2 * Math.PI * 220 * t) + Math.sin(2 * Math.PI * 277.2 * t * 1.002) + Math.sin(2 * Math.PI * 329.6 * t)) * 0.05;
+    const padR = (Math.sin(2 * Math.PI * 220.6 * t) + Math.sin(2 * Math.PI * 277.2 * t * 0.998) + Math.sin(2 * Math.PI * 330.2 * t)) * 0.05;
+    L[n] = mono + padL + (step ? hat : hat * 0.25); Rr[n] = mono + padR + (step ? hat * 0.25 : hat);
+  }
+  return b;
+}
+function ensureCtx() {
+  if (ctx) return;
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  conv = ctx.createConvolver(); conv.normalize = false; wet = ctx.createGain(); dry = ctx.createGain(); dry.gain.value = 0;
+  conv.connect(wet).connect(ctx.destination); dry.connect(ctx.destination);
+  demoBuf = makeDemo(ctx.sampleRate); refreshConvolver();
+}
+function refreshConvolver() {
+  if (!ctx) return; const { LL, LR } = buildIR(P, ctx.sampleRate), b = ctx.createBuffer(4, LL.length, ctx.sampleRate);
+  b.copyToChannel(Float32Array.from(LL), 0); b.copyToChannel(Float32Array.from(LR), 1); b.copyToChannel(Float32Array.from(LR), 2); b.copyToChannel(Float32Array.from(LL), 3);
+  conv.buffer = b;
+}
+function stop() { if (src) { try { src.stop(); } catch (e) {} src.disconnect(); src = null; } playing = false; $("play").textContent = srcBuf ? "Play your track" : "Play demo loop"; }
+function play() {
+  ensureCtx(); ctx.resume(); stop();
+  src = ctx.createBufferSource(); src.buffer = srcBuf || demoBuf; src.loop = true; src.connect(conv); src.connect(dry); src.start();
+  playing = true; $("play").textContent = "Stop";
+}
+$("play").onclick = () => playing ? stop() : play();
+$("bypass").onclick = () => { bypass = !bypass; $("bypass").setAttribute("aria-pressed", bypass); if (ctx) { wet.gain.value = bypass ? 0 : 1; dry.gain.value = bypass ? 1 : 0; }
+  $("pstatus").textContent = bypass ? "Bypassed: you're hearing the dry signal." : "Effect on."; };
+$("file").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return; ensureCtx(); $("pstatus").textContent = "Decoding " + f.name + "…";
+  try { srcBuf = await ctx.decodeAudioData(await f.arrayBuffer()); $("pstatus").textContent = "Loaded " + f.name + ". Your file stays in this browser."; play(); }
+  catch (err) { $("pstatus").textContent = "That file couldn't be decoded. Try an MP3, WAV, OGG or FLAC."; }
+};
+
+// ---------- Export ----------
+let dl = null;
+(async () => { if (window.claude?.use) { dl = await window.claude.use("downloads"); if (!dl) { $("export").disabled = true; $("estatus").textContent = "Downloads aren't available in this view. Open the page in claude.ai to export."; } } })();
+function cleanName(s) { return (s || "").replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, " ") || "WowSpace"; }
+function fileSlug(s) { const b = s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); return !b ? "wowspace" : b.startsWith("wowspace") ? b : "wowspace-" + b; }
+function outLabel(n) { return /^wowspace\b/i.test(n) ? n : "WowSpace (" + n + ")"; }
+function pwConf(name, slug) {
+  const conv = (n, ch) => `          { type = builtin label = convolver name = ${n} config = { filename = "@IRDIR@/${slug}-stereo.wav" channel = ${ch} } }`;
+  return `# WowSpace PipeWire output: ${name}
+# Generated by WowSpace HeSuVi Builder. True-stereo convolution (4-channel IR):
+# ch0 = L->L, ch1 = L->R, ch2 = R->L, ch3 = R->R
+context.modules = [
+  { name = libpipewire-module-filter-chain
+    flags = [ nofail ]
+    args = {
+      node.description = "${outLabel(name)}"
+      media.name       = "${outLabel(name)}"
+      filter.graph = {
+        nodes = [
+          { type = builtin label = copy name = inL }
+          { type = builtin label = copy name = inR }
+${conv("convLL", 0)}
+${conv("convLR", 1)}
+${conv("convRL", 2)}
+${conv("convRR", 3)}
+          { type = builtin label = mixer name = mixL }
+          { type = builtin label = mixer name = mixR }
+        ]
+        links = [
+          { output = "inL:Out"    input = "convLL:In" }
+          { output = "inL:Out"    input = "convLR:In" }
+          { output = "inR:Out"    input = "convRL:In" }
+          { output = "inR:Out"    input = "convRR:In" }
+          { output = "convLL:Out" input = "mixL:In 1" }
+          { output = "convRL:Out" input = "mixL:In 2" }
+          { output = "convLR:Out" input = "mixR:In 1" }
+          { output = "convRR:Out" input = "mixR:In 2" }
+        ]
+        inputs  = [ "inL:In" "inR:In" ]
+        outputs = [ "mixL:Out" "mixR:Out" ]
+      }
+      capture.props = {
+        node.name      = "effect_input.${slug.replace(/-/g, "_")}"
+        media.class    = Audio/Sink
+        audio.channels = 2
+        audio.position = [ FL FR ]
+      }
+      playback.props = {
+        node.name      = "effect_output.${slug.replace(/-/g, "_")}"
+        node.passive   = true
+        audio.channels = 2
+        audio.position = [ FL FR ]
+      }
+    }
+  }
+]
+`;
+}
+function installSh(name, slug) {
+  return `#!/usr/bin/env bash
+# Installs the "${outLabel(name)}" PipeWire output for the current user.
+set -euo pipefail
+here="$(cd "$(dirname "$0")" && pwd)"
+pw="\${XDG_CONFIG_HOME:-$HOME/.config}/pipewire"
+mkdir -p "$pw/wowspace" "$pw/pipewire.conf.d"
+cp "$here/${slug}-stereo.wav" "$here/${slug}-hesuvi.wav" "$pw/wowspace/"
+sed "s|@IRDIR@|$pw/wowspace|g" "$here/sink-${slug}.conf" > "$pw/pipewire.conf.d/sink-${slug}.conf"
+echo "Installed $pw/pipewire.conf.d/sink-${slug}.conf"
+if systemctl --user restart pipewire pipewire-pulse wireplumber 2>/dev/null || systemctl --user restart pipewire pipewire-pulse 2>/dev/null; then
+  echo "PipeWire restarted. Choose '${outLabel(name)}' as your output."
+else
+  echo "Restart PipeWire (or log out and back in), then choose '${outLabel(name)}' as your output."
+fi
+`;
+}
+function eePreset(slug, p) {
+  const tb = p.trubass / 100;
+  return JSON.stringify({ output: {
+    blocklist: [],
+    plugins_order: ["bass_enhancer#0", "convolver#0", "limiter#0"],
+    "bass_enhancer#0": { bypass: tb === 0, "input-gain": 0, "output-gain": 0,
+      amount: Math.round((-12 + 18 * tb) * 10) / 10, harmonics: 8.5, scope: Math.min(250, Math.max(10, p.speaker)),
+      floor: 20, "floor-active": true, blend: 0 },
+    "convolver#0": { bypass: false, "input-gain": 0, "output-gain": 0, "kernel-name": slug, "ir-width": 100,
+      autogain: false, dry: -100, wet: 0, sofa: { azimuth: 0, elevation: 0, radius: 1 } },
+    "limiter#0": { bypass: false, "input-gain": 0, "output-gain": 0, mode: "Herm Thin", oversampling: "None", dithering: "None",
+      "sidechain-type": "Internal", lookahead: 5, attack: 5, release: 20, threshold: -1, "sidechain-preamp": 0, "stereo-link": 100,
+      alr: false, "alr-attack": 5, "alr-release": 50, "alr-knee": 0, "alr-knee-smooth": -5, "gain-boost": false,
+      "input-to-sidechain": -80.01, "input-to-link": -80.01, "sidechain-to-input": -80.01, "sidechain-to-link": -80.01,
+      "link-to-input": -80.01, "link-to-sidechain": -80.01 }
+  } }, null, 4) + "\n";
+}
+function installEE(name, slug) {
+  return `#!/usr/bin/env bash
+# Installs the "${name}" EasyEffects output preset and its impulse file for the current user.
+set -euo pipefail
+here="$(cd "$(dirname "$0")" && pwd)"
+done_any=0
+for base in "\${XDG_DATA_HOME:-$HOME/.local/share}/easyeffects" "$HOME/.var/app/com.github.wwmm.easyeffects/data/easyeffects"; do
+  case "$base" in */.var/app/*) [ -d "$HOME/.var/app/com.github.wwmm.easyeffects" ] || continue ;; esac
+  mkdir -p "$base/irs" "$base/output"
+  cp "$here/${slug}-stereo.wav" "$base/irs/${slug}.irs"
+  cp "$here/${name}.json" "$base/output/${name}.json"
+  echo "Installed into $base"
+  done_any=1
+done
+[ "$done_any" = 1 ] && echo "Open EasyEffects > Presets > Output and load '${name}'."
+`;
+}
+$("export").onclick = async () => {
+  const name = cleanName($("name").value), slug = fileSlug(name), enc = new TextEncoder(), dir = slug + "/";
+  const r = buildIR(P, 48000), files = [
+    { name: dir + slug + "-stereo.wav", data: wavFloat([r.LL, r.LR, r.LR, r.LL], 48000) },
+    { name: dir + slug + "-hesuvi.wav", data: wavFloat(hesuviChannels(r.LL, r.LR), 48000) },
+    { name: dir + "sink-" + slug + ".conf", data: enc.encode(pwConf(name, slug)) },
+    { name: dir + "install.sh", data: enc.encode(installSh(name, slug)) },
+    { name: dir + name + ".json", data: enc.encode(eePreset(slug, P)) },
+    { name: dir + "install-easyeffects.sh", data: enc.encode(installEE(name, slug)) },
+  ];
+  const lines = ["WowSpace: " + name, "Made with WowSpace HeSuVi Builder", "", "Settings:", ...Object.entries(P).map(([k, v]) => "  " + k + ": " + v), "",
+    "Install ONE of these (both at once processes the sound twice):", "",
+    "A) EasyEffects preset (adds real TruBass-style harmonics):", "  bash install-easyeffects.sh",
+    "  Then EasyEffects > Presets > Output > load '" + name + "'. Chain: Bass Enhancer -> Convolver -> Limiter.", "",
+    "B) PipeWire output, no extra app:", "  bash install.sh", "Then pick '" + outLabel(name) + "' as your output (pavucontrol, desktop sound settings, or wpctl set-default).", "",
+    "Remove:", "  rm ~/.config/pipewire/pipewire.conf.d/sink-" + slug + ".conf", "  systemctl --user restart pipewire pipewire-pulse", "",
+    "Files:", "  " + slug + "-stereo.wav  4-ch true-stereo IR, 48 kHz float (ch0 L->L, ch1 L->R, ch2 R->L, ch3 R->R)",
+    "  " + name + ".json  EasyEffects output preset (uses " + slug + ".irs)",
+    "  " + slug + "-hesuvi.wav  14-ch HeSuVi-order IR, 48 kHz float. Use with PipeWire's sink-virtual-surround-7.1-hesuvi.conf or HeSuVi on Windows.",
+    "  HeSuVi channel order: " + ORDER.join(", ")];
+  files.push({ name: dir + "README.txt", data: enc.encode(lines.join("\n") + "\n") });
+  const blob = zip(files), filename = slug + ".zip";
+  if (dl) {
+    try { await dl.save({ filename, data: blob }); $("estatus").textContent = "Saved " + filename + "."; }
+    catch (e) { $("estatus").textContent = e.code === "declined" ? "Download cancelled." : e.code === "rate_limited" ? "A save prompt is already open. Finish it, then try again." : "The download didn't go through (" + (e.code || "error") + ")."; }
+  } else if (!window.claude) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); $("estatus").textContent = "Saved " + filename + "."; }
+};
+
+sync(); cur = buildIR(P, 48000); draw();
+if (typeof module !== "undefined") module.exports = { buildIR, hesuviChannels, wavFloat, zip };
+</script>
+
+</body>
+</html>
