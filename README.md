@@ -25,6 +25,8 @@ sudo pacman -R wowspace
 
 Dependencies: `python`, `pyside6`, `pipewire`, `wireplumber`.
 
+Only stereo is processed: WowSpace is a 2-channel output device.
+
 ## Use
 
 - **On / Off** (button or tray menu): On makes WowSpace your default output and
