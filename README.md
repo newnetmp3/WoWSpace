@@ -33,8 +33,17 @@ Only stereo is processed: WowSpace is a 2-channel output device.
   sends the processed sound to your real device. Off switches your default back.
 - **Play through**: which device WowSpace plays into. "Your previous default
   output" uses whatever was default when you turned it on.
-- **Presets**: Classic, Headphones, Max WOW, Bass Head, Subtle, plus your own
-  (Save…). Also in the tray menu.
+- **Presets**: Classic, Headphones, Max WOW, Bass Head, Subtle, plus your own.
+  Also in the tray menu. When you change a setting the preset shows
+  "(modified)". **Save** writes your changes over the current preset;
+  **Save New…** saves them under a new name. Built-in presets can't be
+  changed, so Save on one of them asks for a new name.
+- **Trim / Auto headroom**: sets the level so the effect's loudest frequency
+  stays just under full scale.
+- **Preamp** (0 to +12 dB): makes everything louder after the trim. Loud
+  peaks that go past full scale are rounded off by a soft clipper. That's
+  gentler than plain clipping but still distortion, so if loud passages
+  start to sound harsh, turn the preamp down.
 - Closing the window keeps WowSpace running in the system tray. Use **Quit** in
   the tray menu to stop it; that also switches your output back.
 - **Start WowSpace when I log in** adds it to your session's autostart, in the tray.
@@ -71,8 +80,11 @@ low-passed bass (|x| = 2·max(x, 0) − x, using PipeWire's clamp, invert and
 mixer blocks) and keeping the harmonics above the speaker size, so they
 follow the music's level. Focus adds presence near 3 kHz and air above
 9 kHz. Headphone mode crossfeeds a low-passed, 0.28 ms delayed copy of each
-side into the other ear. A hard clip at 0 dBFS guards the output; leave Auto
-headroom on to stay clear of it.
+side into the other ear. Trim and Preamp are applied next, then a soft
+clipper: below about −2 dBFS (0.8) the signal passes untouched, and from
+there to 1.1 it bends smoothly into full scale (u − 4/27·u³), built from the
+same clamp, invert, mult and mixer blocks. A hard clip at 0 dBFS is the last
+guard.
 
 This is an independent recreation of the sound, based on public descriptions
 of the SRS techniques. It is not affiliated with SRS Labs or its successors.
