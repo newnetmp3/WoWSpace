@@ -1,6 +1,6 @@
 # Maintainer: you
 pkgname=wowspace
-pkgver=1.0.0
+pkgver=1.1.0
 pkgrel=1
 pkgdesc="WOW Thing-style sound enhancer (3D space, TruBass, focus, crossfeed) for PipeWire"
 arch=('any')
